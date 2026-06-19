@@ -39,23 +39,33 @@ if ($file['size'] > $maxSize) {
 }
 
 $originalName = $file['name'];
+$filename = pathinfo($originalName, PATHINFO_FILENAME);
 $ext = pathinfo($originalName, PATHINFO_EXTENSION);
-$safeName = preg_replace('/[^a-zA-Z0-9_\-\.\x{4e00}-\x{9fa5}]/u', '_', $originalName);
-$uniqueName = date('YmdHis') . '_' . substr(md5(uniqid()), 0, 8) . '.' . $ext;
-$uploadPath = $uploadDir . $uniqueName;
+$safeName = preg_replace('/[^a-zA-Z0-9_\-\.\x{4e00}-\x{9fa5}]/u', '_', $filename);
+$safeExt = preg_replace('/[^a-zA-Z0-9]/u', '', $ext);
+
+$finalName = $safeName . ($safeExt ? '.' . $safeExt : '');
+$uploadPath = $uploadDir . $finalName;
+
+$counter = 1;
+while (file_exists($uploadPath)) {
+    $finalName = $safeName . '_' . $counter . ($safeExt ? '.' . $safeExt : '');
+    $uploadPath = $uploadDir . $finalName;
+    $counter++;
+}
 
 if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'];
     $dir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-    $url = $protocol . '://' . $host . $dir . '/uploads/' . $uniqueName;
+    $url = $protocol . '://' . $host . $dir . '/uploads/' . rawurlencode($finalName);
 
     echo json_encode([
         'success' => true,
         'message' => '上传成功',
         'url' => $url,
-        'filename' => $uniqueName,
-        'original_name' => $safeName,
+        'filename' => $finalName,
+        'original_name' => $originalName,
         'size' => $file['size']
     ]);
 } else {
