@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文件上传</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .container {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    padding: 40px;
+    width: 100%;
+    max-width: 600px;
+  }
+  h1 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .subtitle {
+    text-align: center;
+    color: #888;
+    margin-bottom: 30px;
+    font-size: 14px;
+  }
+  .drop-zone {
+    border: 3px dashed #d0d0d0;
+    border-radius: 12px;
+    padding: 60px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #fafafa;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: #667eea;
+    background: #f0f2ff;
+  }
+  .drop-zone .icon {
+    font-size: 48px;
+    color: #667eea;
+    margin-bottom: 12px;
+  }
+  .drop-zone p {
+    color: #666;
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+  .drop-zone .hint {
+    color: #aaa;
+    font-size: 13px;
+  }
+  .file-input { display: none; }
+  .file-list {
+    margin-top: 24px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .file-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: #f7f7f9;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .file-info { flex: 1; min-width: 0; margin-right: 12px; }
+  .file-name {
+    font-size: 14px;
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 4px;
+  }
+  .file-size { font-size: 12px; color: #999; }
+  .progress-wrap {
+    flex: 1;
+    height: 8px;
+    background: #e8e8e8;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0 12px;
+  }
+  .progress-bar {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transition: width 0.3s;
+  }
+  .status { font-size: 12px; min-width: 60px; text-align: right; }
+  .status.uploading { color: #667eea; }
+  .status.success { color: #4caf50; }
+  .status.error { color: #f44336; }
+  .btn-upload {
+    display: block;
+    width: 100%;
+    margin-top: 24px;
+    padding: 14px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .btn-upload:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102,126,234,0.4);
+  }
+  .btn-upload:disabled { opacity: 0.5; cursor: not-allowed; }
+  .result-link {
+    margin-top: 16px;
+    padding: 14px;
+    background: #e8f5e9;
+    border-left: 4px solid #4caf50;
+    border-radius: 6px;
+    word-break: break-all;
+    font-size: 13px;
+    color: #2e7d32;
+  }
+  .result-link a {
+    color: #2e7d32;
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>📤 文件上传</h1>
+    <p class="subtitle">将文件上传到服务器</p>
+
+    <div class="drop-zone" id="dropZone">
+      <div class="icon">☁️</div>
+      <p>点击或拖拽文件到此处</p>
+      <p class="hint">支持任意文件类型 · 可多选</p>
+      <input type="file" class="file-input" id="fileInput" multiple>
+    </div>
+
+    <div class="file-list" id="fileList"></div>
+
+    <button class="btn-upload" id="uploadBtn" disabled>开始上传</button>
+    <div id="resultArea"></div>
+  </div>
+
+<script>
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const fileList = document.getElementById('fileList');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const resultArea = document.getElementById('resultArea');
+  let selectedFiles = [];
+
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('dragover');
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+  });
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
+    return (bytes / 1073741824).toFixed(2) + ' GB';
+  }
+
+  function handleFiles(files) {
+    for (const file of files) {
+      selectedFiles.push(file);
+    }
+    renderFileList();
+    uploadBtn.disabled = selectedFiles.length === 0;
+  }
+
+  function renderFileList() {
+    fileList.innerHTML = '';
+    selectedFiles.forEach((file, idx) => {
+      const item = document.createElement('div');
+      item.className = 'file-item';
+      item.innerHTML = `
+        <div class="file-info">
+          <div class="file-name">${file.name}</div>
+          <div class="file-size">${formatSize(file.size)}</div>
+        </div>
+        <div class="progress-wrap"><div class="progress-bar" data-idx="${idx}"></div></div>
+        <div class="status" data-idx="${idx}">等待</div>
+      `;
+      fileList.appendChild(item);
+    });
+  }
+
+  function updateProgress(idx, percent, status) {
+    const bar = document.querySelector(`.progress-bar[data-idx="${idx}"]`);
+    const st = document.querySelector(`.status[data-idx="${idx}"]`);
+    if (bar) bar.style.width = percent + '%';
+    if (st) {
+      st.textContent = status;
+      st.className = 'status ' + (percent === 100 ? 'success' : (status === '失败' ? 'error' : 'uploading'));
+    }
+  }
+
+  uploadBtn.addEventListener('click', () => {
+    uploadBtn.disabled = true;
+    resultArea.innerHTML = '';
+    uploadFiles();
+  });
+
+  function uploadFiles() {
+    let current = 0;
+
+    function next() {
+      if (current >= selectedFiles.length) {
+        uploadBtn.textContent = '上传完成！重新选择';
+        uploadBtn.disabled = false;
+        return;
+      }
+      const file = selectedFiles[current];
+      const idx = current;
+      current++;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', 'upload.php', true);
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 99);
+          updateProgress(idx, percent, '上传中...');
+        }
+      });
+
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          try {
+            const res = JSON.parse(xhr.responseText);
+            if (res.success) {
+              updateProgress(idx, 100, '完成');
+              const link = document.createElement('div');
+              link.className = 'result-link';
+              link.innerHTML = `✅ <strong>${file.name}</strong> 上传成功！<br>访问地址: <a href="${res.url}" target="_blank">${res.url}</a>`;
+              resultArea.appendChild(link);
+            } else {
+              updateProgress(idx, 0, '失败');
+              const err = document.createElement('div');
+              err.className = 'result-link';
+              err.style.background = '#ffebee';
+              err.style.borderLeftColor = '#f44336';
+              err.style.color = '#c62828';
+              err.innerHTML = `❌ ${file.name}: ${res.message || '上传失败'}`;
+              resultArea.appendChild(err);
+            }
+          } catch (e) {
+            updateProgress(idx, 0, '失败');
+            const err = document.createElement('div');
+            err.className = 'result-link';
+            err.style.background = '#ffebee';
+            err.style.borderLeftColor = '#f44336';
+            err.style.color = '#c62828';
+            err.innerHTML = `❌ ${file.name}: 服务器响应异常（请确认服务器支持PHP）`;
+            resultArea.appendChild(err);
+          }
+        } else {
+          updateProgress(idx, 0, '失败');
+        }
+        setTimeout(next, 200);
+      };
+
+      xhr.onerror = function() {
+        updateProgress(idx, 0, '失败');
+        setTimeout(next, 200);
+      };
+
+      updateProgress(idx, 1, '上传中...');
+      xhr.send(formData);
+    }
+
+    next();
+  }
+</script>
+</body>
+</html>
