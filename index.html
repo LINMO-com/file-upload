@@ -10,35 +10,32 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     padding: 20px;
   }
   .container {
     background: #fff;
     border-radius: 16px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-    padding: 40px;
-    width: 100%;
-    max-width: 600px;
+    padding: 32px;
+    max-width: 720px;
+    margin: 0 auto;
   }
   h1 {
-    font-size: 28px;
+    font-size: 26px;
     color: #333;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     text-align: center;
   }
   .subtitle {
     text-align: center;
     color: #888;
-    margin-bottom: 30px;
-    font-size: 14px;
+    margin-bottom: 28px;
+    font-size: 13px;
   }
   .drop-zone {
     border: 3px dashed #d0d0d0;
     border-radius: 12px;
-    padding: 60px 20px;
+    padding: 50px 20px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s;
@@ -49,35 +46,25 @@
     background: #f0f2ff;
   }
   .drop-zone .icon {
-    font-size: 48px;
+    font-size: 44px;
     color: #667eea;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
-  .drop-zone p {
-    color: #666;
-    font-size: 15px;
-    margin-bottom: 6px;
-  }
-  .drop-zone .hint {
-    color: #aaa;
-    font-size: 13px;
-  }
+  .drop-zone p { color: #666; font-size: 15px; margin-bottom: 4px; }
+  .drop-zone .hint { color: #aaa; font-size: 13px; }
   .file-input { display: none; }
-  .file-list {
-    margin-top: 24px;
-    max-height: 300px;
-    overflow-y: auto;
-  }
-  .file-item {
+  .upload-list { margin-top: 20px; }
+  .upload-item {
+    background: #f7f7f9;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
     display: flex;
     align-items: center;
-    padding: 12px;
-    background: #f7f7f9;
-    border-radius: 8px;
-    margin-bottom: 8px;
+    gap: 12px;
   }
-  .file-info { flex: 1; min-width: 0; margin-right: 12px; }
-  .file-name {
+  .upload-info { flex: 1; min-width: 0; }
+  .upload-name {
     font-size: 14px;
     color: #333;
     overflow: hidden;
@@ -85,14 +72,13 @@
     white-space: nowrap;
     margin-bottom: 4px;
   }
-  .file-size { font-size: 12px; color: #999; }
+  .upload-meta { font-size: 12px; color: #999; }
   .progress-wrap {
-    flex: 1;
+    width: 120px;
     height: 8px;
     background: #e8e8e8;
     border-radius: 4px;
     overflow: hidden;
-    margin: 0 12px;
   }
   .progress-bar {
     height: 100%;
@@ -100,20 +86,20 @@
     background: linear-gradient(90deg, #667eea, #764ba2);
     transition: width 0.3s;
   }
-  .status { font-size: 12px; min-width: 60px; text-align: right; }
+  .status { font-size: 12px; min-width: 42px; text-align: right; }
   .status.uploading { color: #667eea; }
   .status.success { color: #4caf50; }
   .status.error { color: #f44336; }
   .btn-upload {
     display: block;
     width: 100%;
-    margin-top: 24px;
-    padding: 14px;
+    margin-top: 22px;
+    padding: 13px;
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: #fff;
     border: none;
     border-radius: 10px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -123,67 +109,250 @@
     box-shadow: 0 8px 20px rgba(102,126,234,0.4);
   }
   .btn-upload:disabled { opacity: 0.5; cursor: not-allowed; }
-  .result-link {
-    margin-top: 16px;
-    padding: 14px;
-    background: #e8f5e9;
-    border-left: 4px solid #4caf50;
-    border-radius: 6px;
-    word-break: break-all;
-    font-size: 13px;
-    color: #2e7d32;
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 30px 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
   }
-  .result-link a {
-    color: #2e7d32;
-    text-decoration: underline;
+  .section-title h2 {
+    font-size: 17px;
+    color: #333;
+  }
+  .refresh-btn {
+    background: none;
+    border: 1px solid #ddd;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #666;
+    cursor: pointer;
+  }
+  .refresh-btn:hover { background: #f5f5f5; }
+
+  .file-list { margin-top: 0; }
+  .file-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+  }
+  .file-row:hover { border-color: #667eea; box-shadow: 0 4px 12px rgba(102,126,234,0.15); }
+  .file-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  .file-main { flex: 1; min-width: 0; }
+  .file-main .fname {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 3px;
+  }
+  .file-main .fmeta { font-size: 12px; color: #999; }
+  .file-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .btn {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .btn-share {
+    background: #667eea;
+    color: #fff;
+  }
+  .btn-share:hover { background: #5568d3; }
+  .btn-download {
+    background: #f0f2ff;
+    color: #667eea;
+    border: 1px solid #e0e4ff;
+  }
+  .btn-download:hover { background: #e0e4ff; }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #aaa;
+    font-size: 14px;
+  }
+
+  .modal-mask {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-mask.show { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .modal h3 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 6px;
+  }
+  .modal .modal-sub {
+    color: #888;
+    font-size: 13px;
+    margin-bottom: 18px;
+    word-break: break-all;
+  }
+  .link-box {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .link-input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 13px;
+    background: #f9f9f9;
+    color: #333;
+    word-break: break-all;
+  }
+  .btn-copy {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    padding: 0 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .btn-copy.copied { background: #4caf50; }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  .btn-close {
+    background: #f0f0f0;
+    color: #666;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .btn-close:hover { background: #e0e0e0; }
+  .btn-open {
+    background: #667eea;
+    color: #fff;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .btn-open:hover { background: #5568d3; }
+
+  @media (max-width: 600px) {
+    .container { padding: 22px 18px; }
+    .drop-zone { padding: 38px 15px; }
+    .file-row { padding: 10px; }
+    .btn { padding: 6px 10px; font-size: 11px; }
   }
 </style>
 </head>
 <body>
   <div class="container">
     <h1>📤 文件上传</h1>
-    <p class="subtitle">将文件上传到服务器</p>
+    <p class="subtitle">拖拽或点击上传，支持任意文件类型</p>
 
     <div class="drop-zone" id="dropZone">
       <div class="icon">☁️</div>
       <p>点击或拖拽文件到此处</p>
-      <p class="hint">支持任意文件类型 · 可多选</p>
+      <p class="hint">可多选 · 最大 500MB</p>
       <input type="file" class="file-input" id="fileInput" multiple>
     </div>
 
-    <div class="file-list" id="fileList"></div>
-
+    <div class="upload-list" id="uploadList"></div>
     <button class="btn-upload" id="uploadBtn" disabled>开始上传</button>
-    <div id="resultArea"></div>
+
+    <div class="section-title">
+      <h2>📁 服务器文件</h2>
+      <button class="refresh-btn" id="refreshBtn">🔄 刷新</button>
+    </div>
+    <div class="file-list" id="fileList"></div>
+  </div>
+
+  <div class="modal-mask" id="modalMask">
+    <div class="modal">
+      <h3>🔗 分享链接</h3>
+      <p class="modal-sub" id="modalFilename"></p>
+      <div class="link-box">
+        <input type="text" class="link-input" id="linkInput" readonly>
+        <button class="btn btn-copy" id="copyBtn">复制</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-close" id="closeBtn">关闭</button>
+        <button class="btn btn-open" id="openBtn">打开链接</button>
+      </div>
+    </div>
   </div>
 
 <script>
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');
-  const fileList = document.getElementById('fileList');
+  const uploadList = document.getElementById('uploadList');
   const uploadBtn = document.getElementById('uploadBtn');
-  const resultArea = document.getElementById('resultArea');
+  const fileList = document.getElementById('fileList');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const modalMask = document.getElementById('modalMask');
+  const modalFilename = document.getElementById('modalFilename');
+  const linkInput = document.getElementById('linkInput');
+  const copyBtn = document.getElementById('copyBtn');
+  const closeBtn = document.getElementById('closeBtn');
+  const openBtn = document.getElementById('openBtn');
+
   let selectedFiles = [];
 
   dropZone.addEventListener('click', () => fileInput.click());
-
   dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
     dropZone.classList.add('dragover');
   });
-
-  dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('dragover');
-  });
-
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
   dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
     dropZone.classList.remove('dragover');
-    handleFiles(e.dataTransfer.files);
+    for (const f of e.dataTransfer.files) selectedFiles.push(f);
+    renderUploadList();
+    uploadBtn.disabled = selectedFiles.length === 0;
   });
-
   fileInput.addEventListener('change', (e) => {
-    handleFiles(e.target.files);
+    for (const f of e.target.files) selectedFiles.push(f);
+    renderUploadList();
+    uploadBtn.disabled = selectedFiles.length === 0;
   });
 
   function formatSize(bytes) {
@@ -192,29 +361,25 @@
     if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
     return (bytes / 1073741824).toFixed(2) + ' GB';
   }
-
-  function handleFiles(files) {
-    for (const file of files) {
-      selectedFiles.push(file);
-    }
-    renderFileList();
-    uploadBtn.disabled = selectedFiles.length === 0;
+  function formatTime(t) {
+    const d = new Date(t * 1000);
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
   }
 
-  function renderFileList() {
-    fileList.innerHTML = '';
+  function renderUploadList() {
+    uploadList.innerHTML = '';
     selectedFiles.forEach((file, idx) => {
       const item = document.createElement('div');
-      item.className = 'file-item';
+      item.className = 'upload-item';
       item.innerHTML = `
-        <div class="file-info">
-          <div class="file-name">${file.name}</div>
-          <div class="file-size">${formatSize(file.size)}</div>
+        <div class="upload-info">
+          <div class="upload-name">${file.name}</div>
+          <div class="upload-meta">${formatSize(file.size)}</div>
         </div>
         <div class="progress-wrap"><div class="progress-bar" data-idx="${idx}"></div></div>
-        <div class="status" data-idx="${idx}">等待</div>
+        <div class="status" data-idx="${idx}">待传</div>
       `;
-      fileList.appendChild(item);
+      uploadList.appendChild(item);
     });
   }
 
@@ -230,83 +395,137 @@
 
   uploadBtn.addEventListener('click', () => {
     uploadBtn.disabled = true;
-    resultArea.innerHTML = '';
+    uploadBtn.textContent = '上传中...';
     uploadFiles();
   });
 
   function uploadFiles() {
-    let current = 0;
-
+    let i = 0;
     function next() {
-      if (current >= selectedFiles.length) {
+      if (i >= selectedFiles.length) {
         uploadBtn.textContent = '上传完成！重新选择';
         uploadBtn.disabled = false;
+        selectedFiles = [];
+        renderUploadList();
+        loadFileList();
         return;
       }
-      const file = selectedFiles[current];
-      const idx = current;
-      current++;
-
+      const file = selectedFiles[i];
+      const idx = i;
+      i++;
       const formData = new FormData();
       formData.append('file', file);
-
       const xhr = new XMLHttpRequest();
       xhr.open('POST', 'upload.php', true);
-
       xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          const percent = Math.round((e.loaded / e.total) * 99);
-          updateProgress(idx, percent, '上传中...');
-        }
+        if (e.lengthComputable) updateProgress(idx, Math.round(e.loaded/e.total*99), Math.round(e.loaded/e.total*100)+'%');
       });
-
       xhr.onload = function() {
-        if (xhr.status === 200) {
-          try {
-            const res = JSON.parse(xhr.responseText);
-            if (res.success) {
-              updateProgress(idx, 100, '完成');
-              const link = document.createElement('div');
-              link.className = 'result-link';
-              link.innerHTML = `✅ <strong>${file.name}</strong> 上传成功！<br>访问地址: <a href="${res.url}" target="_blank">${res.url}</a>`;
-              resultArea.appendChild(link);
-            } else {
-              updateProgress(idx, 0, '失败');
-              const err = document.createElement('div');
-              err.className = 'result-link';
-              err.style.background = '#ffebee';
-              err.style.borderLeftColor = '#f44336';
-              err.style.color = '#c62828';
-              err.innerHTML = `❌ ${file.name}: ${res.message || '上传失败'}`;
-              resultArea.appendChild(err);
-            }
-          } catch (e) {
+        try {
+          const res = JSON.parse(xhr.responseText);
+          if (res.success) {
+            updateProgress(idx, 100, '完成');
+          } else {
             updateProgress(idx, 0, '失败');
-            const err = document.createElement('div');
-            err.className = 'result-link';
-            err.style.background = '#ffebee';
-            err.style.borderLeftColor = '#f44336';
-            err.style.color = '#c62828';
-            err.innerHTML = `❌ ${file.name}: 服务器响应异常（请确认服务器支持PHP）`;
-            resultArea.appendChild(err);
           }
-        } else {
+        } catch (e) {
           updateProgress(idx, 0, '失败');
         }
         setTimeout(next, 200);
       };
-
       xhr.onerror = function() {
         updateProgress(idx, 0, '失败');
         setTimeout(next, 200);
       };
-
-      updateProgress(idx, 1, '上传中...');
+      updateProgress(idx, 1, '上传中');
       xhr.send(formData);
     }
-
     next();
   }
+
+  function renderFileList(files) {
+    fileList.innerHTML = '';
+    if (!files || files.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.textContent = '暂无文件，上传第一个吧~';
+      fileList.appendChild(empty);
+      return;
+    }
+    files.forEach(f => {
+      const row = document.createElement('div');
+      row.className = 'file-row';
+      row.innerHTML = `
+        <div class="file-icon">📄</div>
+        <div class="file-main">
+          <div class="fname" title="${f.name}">${f.name}</div>
+          <div class="fmeta">${formatSize(f.size)} · ${formatTime(f.time)}</div>
+        </div>
+        <div class="file-actions">
+          <button class="btn btn-share" data-url="${f.url}" data-name="${f.name}">分享</button>
+          <button class="btn btn-download" data-url="${f.url}">下载</button>
+        </div>
+      `;
+      fileList.appendChild(row);
+    });
+
+    fileList.querySelectorAll('.btn-share').forEach(btn => {
+      btn.addEventListener('click', () => openModal(btn.dataset.url, btn.dataset.name));
+    });
+    fileList.querySelectorAll('.btn-download').forEach(btn => {
+      btn.addEventListener('click', () => window.open(btn.dataset.url, '_blank'));
+    });
+  }
+
+  function loadFileList() {
+    fileList.innerHTML = '<div class="empty-state">加载中...</div>';
+    fetch('files.php')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) renderFileList(data.files);
+        else fileList.innerHTML = '<div class="empty-state">加载失败</div>';
+      })
+      .catch(() => { fileList.innerHTML = '<div class="empty-state">请确认服务器支持 PHP</div>'; });
+  }
+
+  refreshBtn.addEventListener('click', loadFileList);
+
+  function openModal(url, name) {
+    modalFilename.textContent = name;
+    linkInput.value = url;
+    copyBtn.textContent = '复制';
+    copyBtn.classList.remove('copied');
+    modalMask.classList.add('show');
+  }
+  closeBtn.addEventListener('click', () => modalMask.classList.remove('show'));
+  modalMask.addEventListener('click', (e) => { if (e.target === modalMask) modalMask.classList.remove('show'); });
+  openBtn.addEventListener('click', () => window.open(linkInput.value, '_blank'));
+  copyBtn.addEventListener('click', () => {
+    const copyText = () => {
+      try {
+        navigator.clipboard.writeText(linkInput.value).then(() => {
+          copyBtn.textContent = '✓ 已复制';
+          copyBtn.classList.add('copied');
+          setTimeout(() => { copyBtn.textContent = '复制'; copyBtn.classList.remove('copied'); }, 1500);
+        }).catch(() => fallbackCopy());
+      } catch (e) { fallbackCopy(); }
+    };
+    const fallbackCopy = () => {
+      linkInput.removeAttribute('readonly');
+      linkInput.select();
+      linkInput.setSelectionRange(0, linkInput.value.length);
+      try {
+        document.execCommand('copy');
+        copyBtn.textContent = '✓ 已复制';
+        copyBtn.classList.add('copied');
+        setTimeout(() => { copyBtn.textContent = '复制'; copyBtn.classList.remove('copied'); }, 1500);
+      } catch (e) { alert('复制失败，请手动复制'); }
+      linkInput.setAttribute('readonly', '');
+    };
+    copyText();
+  });
+
+  loadFileList();
 </script>
 </body>
 </html>
