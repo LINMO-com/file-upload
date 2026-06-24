@@ -86,10 +86,25 @@
     background: linear-gradient(90deg, #667eea, #764ba2);
     transition: width 0.3s;
   }
-  .status { font-size: 12px; min-width: 42px; text-align: right; }
+  .status { font-size: 12px; min-width: 70px; text-align: right; }
   .status.uploading { color: #667eea; }
+  .status.processing { color: #ff9800; }
   .status.success { color: #4caf50; }
   .status.error { color: #f44336; }
+  .status.processing::after {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-left: 4px;
+    border-radius: 50%;
+    background: #ff9800;
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
   .btn-upload {
     display: block;
     width: 100%;
@@ -383,13 +398,13 @@
     });
   }
 
-  function updateProgress(idx, percent, status) {
+  function updateProgress(idx, percent, status, statusClass) {
     const bar = document.querySelector(`.progress-bar[data-idx="${idx}"]`);
     const st = document.querySelector(`.status[data-idx="${idx}"]`);
     if (bar) bar.style.width = percent + '%';
     if (st) {
       st.textContent = status;
-      st.className = 'status ' + (percent === 100 ? 'success' : (status === '失败' ? 'error' : 'uploading'));
+      st.className = 'status ' + (statusClass || '');
     }
   }
 
@@ -418,26 +433,32 @@
       const xhr = new XMLHttpRequest();
       xhr.open('POST', 'upload.php', true);
       xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) updateProgress(idx, Math.round(e.loaded/e.total*99), Math.round(e.loaded/e.total*100)+'%');
+        if (e.lengthComputable) {
+          const pct = Math.round(e.loaded / e.total * 95);
+          updateProgress(idx, pct, Math.round(e.loaded/e.total*100) + '%', 'uploading');
+        }
+      });
+      xhr.upload.addEventListener('load', () => {
+        updateProgress(idx, 95, '处理中...', 'processing');
       });
       xhr.onload = function() {
         try {
           const res = JSON.parse(xhr.responseText);
           if (res.success) {
-            updateProgress(idx, 100, '完成');
+            updateProgress(idx, 100, '完成', 'success');
           } else {
-            updateProgress(idx, 0, '失败');
+            updateProgress(idx, 0, '失败', 'error');
           }
         } catch (e) {
-          updateProgress(idx, 0, '失败');
+          updateProgress(idx, 0, '失败', 'error');
         }
         setTimeout(next, 200);
       };
       xhr.onerror = function() {
-        updateProgress(idx, 0, '失败');
+        updateProgress(idx, 0, '失败', 'error');
         setTimeout(next, 200);
       };
-      updateProgress(idx, 1, '上传中');
+      updateProgress(idx, 1, '上传中', 'uploading');
       xhr.send(formData);
     }
     next();
